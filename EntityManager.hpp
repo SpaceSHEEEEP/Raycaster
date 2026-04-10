@@ -16,7 +16,6 @@ class EntityManager
     int test;
 
 public: 
-    EntityManager();
     void addPlayer(int a, int b);
     void addTile(int a, int b);
     void addEntity(std::string tag);

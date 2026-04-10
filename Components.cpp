@@ -78,7 +78,6 @@ public:
 
     int rayNum{10};
     float FOV{90.0f};
-    // std::vector<sf::Angle> angles;
     std::vector<Ray> rays;
     std::vector<sf::RectangleShape> viewRectangles;
 

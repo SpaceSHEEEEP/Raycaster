@@ -99,11 +99,6 @@ void PlayScene::sUserInput()
     else movePlayer.clockwise = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::E)) movePlayer.counterClockwise = true;
     else movePlayer.counterClockwise = false;
-
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::A)) movePlayer.clockwise = true;
-    // else movePlayer.clockwise = false;
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::D)) movePlayer.counterClockwise = true;
-    // else movePlayer.counterClockwise = false;
 }
 
 void PlayScene::sMovement()
@@ -397,8 +392,6 @@ void PlayScene::render()
     {
         m_window.draw(r.m_line);
     }
-
-    CRays & crays = m_player.getComponent<CRays>();
     for (sf::RectangleShape & r : m_player.getComponent<CRays>().viewRectangles)
     {
         m_window.draw(r);

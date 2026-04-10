@@ -4,11 +4,6 @@
 #include <SFML/System/Vector2.hpp>
 #include <vector>
 
-EntityManager::EntityManager()
-    : test{1}
-    {
-    }
-
 void EntityManager::addPlayer(int a, int b)
 {
         m_player.addComponent<CTransform>(sf::Vector2f(a * TILE_RAD, b * TILE_RAD), sf::Vector2f(.0f, .0f), 0.0f);
