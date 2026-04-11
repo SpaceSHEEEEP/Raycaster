@@ -9,6 +9,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 #include "PlayScene.hpp"
@@ -83,8 +84,7 @@ void PlayScene::update()
 
 void PlayScene::sUserInput()
 {
-    // auto & movePlayer = m_entityManager.getPlayer().getComponent<CInput>();
-    auto & movePlayer = m_player.getComponent<CInput>();
+    auto & movePlayer = m_player.getC<CInput>();
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::W)) movePlayer.up = true;
     else movePlayer.up = false;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::S)) movePlayer.down = true;
@@ -103,8 +103,8 @@ void PlayScene::sUserInput()
 
 void PlayScene::sMovement()
 {
-    auto & player = m_player.getComponent<CTransform>();
-    auto & input = m_player.getComponent<CInput>();
+    auto & player = m_player.getC<CTransform>();
+    auto & input = m_player.getC<CInput>();
 
     if (input.up) 
     {
@@ -131,12 +131,12 @@ void PlayScene::sMovement()
     if (input.clockwise) 
     {
         player.angle -= sf::degrees(ROTATION_SPEED);
-        m_player.getComponent<CShape>().shape.setFillColor(sf::Color::Yellow);
+        m_player.getC<CShape>().shape.setFillColor(sf::Color::Yellow);
     }
     if (input.counterClockwise) 
     {
         player.angle += sf::degrees(ROTATION_SPEED);
-        m_player.getComponent<CShape>().shape.setFillColor(sf::Color::Cyan);
+        m_player.getC<CShape>().shape.setFillColor(sf::Color::Cyan);
     }
 }
 
@@ -144,46 +144,38 @@ void PlayScene::sCollisions()
 {
     // TODO : can still go through corners
     auto & tileVec = m_entityManager.getTiles();
-    sf::Vector2f & playerPos = m_player.getComponent<CTransform>().pos;
+    sf::Vector2f & playerPos = m_player.getC<CTransform>().pos;
     int posX = (int)playerPos.x / 64;
     int posY = (int)playerPos.y / 64;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::P)) std::cout << posX << ' ' << posY << '\n';
 
-    if (posX <  0 || posY < 0)
+    float overlapX = 0.0f, overlapY = 0.0f;
+    // is there a box above me?
+    if (m_entityManager.isTile(posY - 1, posX))
     {
-        std::cout << posX << ' ' << posY << '\n';
+         overlapY = tileVec[posY - 1][posX]->getC<CTransform>().pos.y + 64.0f - (playerPos.y - 10.0f); // magic 64.0f number
+         if (overlapY > 0) playerPos.y += overlapY;
     }
-    else 
+    // or below me?
+    if (m_entityManager.isTile(posY + 1, posX)) 
     {
-        float overlapX = 0.0f, overlapY = 0.0f;
-        // is there a box above me?
-        if (posY > 0 && tileVec[posY - 1][posX].getComponent<CCollision>().exists)
-        {
-             overlapY = tileVec[posY - 1][posX].getComponent<CTransform>().pos.y + 64.0f - (playerPos.y - 10.0f);
-             if (overlapY > 0) playerPos.y += overlapY;
-        }
-        // or below me?
-        if (posY < 7 && tileVec[posY + 1][posX].getComponent<CCollision>().exists) // 7 DEPENDS ON MAP SIZE
-        {
-             overlapY = tileVec[posY + 1][posX].getComponent<CTransform>().pos.y         - (playerPos.y + 10.0f);
-             if (overlapY < 0) playerPos.y += overlapY;
-        }
-        // of left of me
-        if (posX > 0 && tileVec[posY][posX - 1].getComponent<CCollision>().exists)
-        {
-             overlapX = tileVec[posY][posX - 1].getComponent<CTransform>().pos.x + 64.0f - (playerPos.x - 10.0f);
-             if (overlapX > 0) playerPos.x += overlapX;
-        }
-        // or right of me
-        if (posX < 7 && tileVec[posY][posX + 1].getComponent<CCollision>().exists)
-        {
-             overlapX = tileVec[posY][posX + 1].getComponent<CTransform>().pos.x         - (playerPos.x + 10.0f);
-             if (overlapX < 0) playerPos.x += overlapX;
-        }
+         overlapY = tileVec[posY + 1][posX]->getC<CTransform>().pos.y         - (playerPos.y + 10.0f);
+         if (overlapY < 0) playerPos.y += overlapY;
+    }
+    // of left of me
+    if (m_entityManager.isTile(posY, posX - 1))
+    {
+         overlapX = tileVec[posY][posX - 1]->getC<CTransform>().pos.x + 64.0f - (playerPos.x - 10.0f);
+         if (overlapX > 0) playerPos.x += overlapX;
+    }
+    // or right of me
+    if (m_entityManager.isTile(posY, posX + 1))
+    {
+         overlapX = tileVec[posY][posX + 1]->getC<CTransform>().pos.x         - (playerPos.x + 10.0f);
+         if (overlapX < 0) playerPos.x += overlapX;
     }
 
-    std::vector<CRays::Ray> & m_rays = m_player.getComponent<CRays>().rays;
-    auto & input = m_player.getComponent<CInput>();
+    std::vector<CRays::Ray> & m_rays = m_player.getC<CRays>().raysVec;
+    auto & input = m_player.getC<CInput>();
     for (CRays::Ray & r : m_rays)
     {
         r.m_pos = playerPos;
@@ -196,12 +188,12 @@ void PlayScene::sCollisions()
 
 void PlayScene::sRays()
 {
-    std::vector<std::vector<Entity>> & tileMap = m_entityManager.getTiles(); 
+    std::vector<std::vector<std::shared_ptr<Entity>>> & tileMap = m_entityManager.getTiles(); 
     float rayAngleRad, rayAngleDeg;
     int gridX, gridY;  
     float finalX, finalY, offsetX, offsetY, aTan, horizontalLength{FLT_MAX}, verticalLength{FLT_MAX};
 
-    for (CRays::Ray & r : m_player.getComponent<CRays>().rays)
+    for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
     {
         rayAngleRad = r.m_angle.asRadians();
         rayAngleDeg = r.m_angle.asDegrees();
@@ -232,7 +224,7 @@ void PlayScene::sRays()
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
                 }
-                if (tileMap[gridY][gridX].getTag() == "tile")
+                if (tileMap[gridY][gridX]->getTag() == "tile")
                 {
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
@@ -263,7 +255,7 @@ void PlayScene::sRays()
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
                 }
-                if (tileMap[gridY - 1][gridX].getTag() == "tile")
+                if (tileMap[gridY - 1][gridX]->getTag() == "tile")
                 {
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
@@ -303,7 +295,7 @@ void PlayScene::sRays()
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
                 }
-                if (tileMap[gridY][gridX].getTag() == "tile")
+                if (tileMap[gridY][gridX]->getTag() == "tile")
                 {
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
@@ -334,7 +326,7 @@ void PlayScene::sRays()
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
                 }
-                if (tileMap[gridY][gridX - 1].getTag() == "tile")
+                if (tileMap[gridY][gridX - 1]->getTag() == "tile")
                 {
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
@@ -363,13 +355,12 @@ void PlayScene::sRays()
 
     // TODO: rewrite this!!! we can't move forward if we are this messy!!
     // render the 3D STUFF!
-    float rectangleWidth = 64.0f * 8 / m_player.getComponent<CRays>().rayNum;
-    // for (sf::RectangleShape & r : m_entityManager.getPlayer().getComponent<CRays>().viewRectangles)
-    CRays & crays = m_player.getComponent<CRays>();
-    sf::Angle pAngle = m_player.getComponent<CTransform>().angle;
+    float rectangleWidth = 64.0f * 8 / m_player.getC<CRays>().rayNum;
+    CRays & crays = m_player.getC<CRays>();
+    sf::Angle pAngle = m_player.getC<CTransform>().angle;
     for (int i = 0; i < crays.rayNum; i++)
     {
-        crays.viewRectangles[i].setSize({crays.viewRectangles[i].getSize().x, std::max(0.0f,  (500.0f - crays.rays[i].m_length * std::cos( pAngle.asRadians() - crays.rays[i].m_angle.asRadians() )))});
+        crays.viewRectangles[i].setSize({crays.viewRectangles[i].getSize().x, std::max(0.0f,  (500.0f - crays.raysVec[i].m_length * std::cos( pAngle.asRadians() - crays.raysVec[i].m_angle.asRadians() )))});
         crays.viewRectangles[i].setPosition({crays.viewRectangles[i].getPosition().x, (512.0f - std::min(crays.viewRectangles[i].getSize().y, 500.0f)) / 2});
     }
 }
@@ -379,20 +370,20 @@ void PlayScene::render()
     m_window.clear();
     m_entityManager.updateInfo();
 
-    for (std::vector<Entity> & vec : m_entityManager.getTiles())
+    for (std::vector<std::shared_ptr<Entity>> & tileVec : m_entityManager.getTiles())
     {
-        for (Entity & t : vec)
+        for (std::shared_ptr<Entity> & t : tileVec)
         {
-            m_window.draw(t.getComponent<CShape>().shape);
+            if (t->getTag() == "tile") m_window.draw(t->getC<CShape>().shape);
         }
     }
-    m_window.draw(m_player.getComponent<CShape>().shape);
+    m_window.draw(m_player.getC<CShape>().shape);
 
-    for (CRays::Ray & r : m_player.getComponent<CRays>().rays)
+    for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
     {
         m_window.draw(r.m_line);
     }
-    for (sf::RectangleShape & r : m_player.getComponent<CRays>().viewRectangles)
+    for (sf::RectangleShape & r : m_player.getC<CRays>().viewRectangles)
     {
         m_window.draw(r);
     }

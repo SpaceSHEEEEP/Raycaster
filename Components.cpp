@@ -51,7 +51,6 @@ public:
         shape.setPoint(1, {sideLength, 0.0f});
         shape.setPoint(2, {sideLength, sideLength});
         shape.setPoint(3, {0.0f, sideLength});
-        // shape.setPosition({150.0f, 150.0f});
         shape.setOrigin({sideLength / 2, sideLength / 2});
         shape.setFillColor(sf::Color::Blue);
     }
@@ -78,7 +77,7 @@ public:
 
     int rayNum{10};
     float FOV{90.0f};
-    std::vector<Ray> rays;
+    std::vector<Ray> raysVec;
     std::vector<sf::RectangleShape> viewRectangles;
 
     CRays() = default;
@@ -87,7 +86,7 @@ public:
     {
         if (rayNum == 1) 
         {
-            rays.push_back(Ray(pos, angle));
+            raysVec.push_back(Ray(pos, angle));
             viewRectangles.push_back(sf::RectangleShape({512.0f, 512.0f}));
         }
         else 
@@ -96,7 +95,7 @@ public:
             float viewRectWidth = 512.0f / rayNum;
             for (int i{0}; i < rayNum; i++)
             {
-                rays.push_back(Ray(pos, sf::degrees(anglesBtw * i - FOV)));
+                raysVec.push_back(Ray(pos, sf::degrees(anglesBtw * i - FOV)));
                 viewRectangles.push_back(sf::RectangleShape({viewRectWidth, 512.0f}));
                 viewRectangles.back().setPosition({512.0f + i * viewRectWidth, 0.0f});
             }
