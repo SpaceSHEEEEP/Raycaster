@@ -23,7 +23,7 @@ constexpr int   MAP_WIDTH    = 8;
 constexpr int   MAP_HEIGHT   = 8;
 constexpr float PLAYER_RADIUS = 10.0f;
 constexpr float VIEW_HEIGHT  = 512.0f;
-constexpr float MAX_WALL_HEIGHT = 500.0f;
+constexpr float MAX_WALL_HEIGHT = 480.0f;
 
 PlayScene::PlayScene(sf::RenderWindow & window)
     : m_window(window)
@@ -134,11 +134,13 @@ void PlayScene::sMovement()
     {
         player.angle -= sf::degrees(ROTATION_SPEED);
         m_player.getC<CShape>().shape.setFillColor(sf::Color::Yellow);
+        if (player.angle.asDegrees() < 0) player.angle += sf::degrees(360.0f);
     }
     if (input.counterClockwise) 
     {
         player.angle += sf::degrees(ROTATION_SPEED);
         m_player.getC<CShape>().shape.setFillColor(sf::Color::Cyan);
+        if (player.angle.asDegrees() > 360) player.angle -= sf::degrees(360.0f);
     }
 }
 
@@ -197,6 +199,9 @@ void PlayScene::sRays()
 
     for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
     {
+        horizontalLength = FLT_MAX;
+        verticalLength = FLT_MAX;
+
         rayAngleRad = r.m_angle.asRadians();
         rayAngleDeg = r.m_angle.asDegrees();
         finalX = r.m_pos.x; 
@@ -324,26 +329,31 @@ void PlayScene::sRays()
         r.m_length = std::min(horizontalLength, verticalLength);
         if (horizontalLength < verticalLength)
         {
-            if (rayAngleDeg < 180) r.m_line.setFillColor(sf::Color(255, 0, 255, 120));
-            else r.m_line.setFillColor(sf::Color(0, 0, 255, 120));
+            if (rayAngleDeg < 180) r.m_drawable.setFillColor(sf::Color(255, 0, 255, 120));
+            else r.m_drawable.setFillColor(sf::Color(0, 0, 255, 120));
         }
         else
         {
-            if (rayAngleDeg < 90 || rayAngleDeg > 270) r.m_line.setFillColor(sf::Color(255, 0, 0, 120));
-            else r.m_line.setFillColor(sf::Color(255, 255, 0, 120));
+            if (rayAngleDeg < 90 || rayAngleDeg > 270) r.m_drawable.setFillColor(sf::Color(255, 0, 0, 120));
+            else r.m_drawable.setFillColor(sf::Color(255, 255, 0, 120));
             
         }
     }
 
-    // TODO: rewrite this!!! we can't move forward if we are this messy!!
     // render the 3D STUFF!
-    float rectangleWidth = 64.0f * 8 / m_player.getC<CRays>().rayNum;
     CRays & crays = m_player.getC<CRays>();
-    sf::Angle pAngle = m_player.getC<CTransform>().angle;
-    for (int i = 0; i < crays.rayNum; i++)
+    for (int i = 0; i < m_player.getC<CRays>().rayCount; i++)
     {
-        crays.viewRectangles[i].setSize({crays.viewRectangles[i].getSize().x, std::max(0.0f,  (500.0f - crays.raysVec[i].m_length * std::cos( pAngle.asRadians() - crays.raysVec[i].m_angle.asRadians() )))});
-        crays.viewRectangles[i].setPosition({crays.viewRectangles[i].getPosition().x, (512.0f - std::min(crays.viewRectangles[i].getSize().y, 500.0f)) / 2});
+        // this was vibe coded i dont understand sliceHeight's formula
+        float fishEyeCorrection = std::cos(crays.raysVec[i].m_relativeAngle.asRadians());
+        float sliceHeight = MAX_WALL_HEIGHT * MAX_WALL_HEIGHT / (crays.raysVec[i].m_length * fishEyeCorrection);
+        float sliceY = (VIEW_HEIGHT - std::min(sliceHeight, MAX_WALL_HEIGHT)) / 2.0f;
+
+        crays.wallSlices[i].setSize({crays.wallSlices[i].getSize().x , sliceHeight});
+        crays.wallSlices[i].setPosition({crays.wallSlices[i].getPosition().x, sliceY});
+
+        // also there's a black line in the centre if look at wall perpendicularly
+        crays.wallSlices[i].setFillColor(crays.raysVec[i].m_drawable.getFillColor());
     }
 }
 
@@ -360,12 +370,12 @@ void PlayScene::render()
     //     }
     // }
     // m_window.draw(m_player.getC<CShape>().shape);
-
+    //
     // for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
     // {
-    //     m_window.draw(r.m_line);
+    //     m_window.draw(r.m_drawable);
     // }
-    for (sf::RectangleShape & r : m_player.getC<CRays>().viewRectangles)
+    for (sf::RectangleShape & r : m_player.getC<CRays>().wallSlices)
     {
         m_window.draw(r);
     }

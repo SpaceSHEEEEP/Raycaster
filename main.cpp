@@ -4,9 +4,9 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({64 * 16, 64 * 8}), "raycaster test");
+    sf::RenderWindow window(sf::VideoMode({640, 480}), "raycaster test");
     window.setFramerateLimit(60);
-    window.setPosition({800, 450});
+    window.setPosition({100, 150});
     SceneManager sceneManager(window);
      
     while(window.isOpen())

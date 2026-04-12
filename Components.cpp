@@ -62,42 +62,43 @@ public:
     struct Ray 
     {
         sf::Angle m_angle;
+        sf::Angle m_relativeAngle;
         float m_length{1000.0f};
         sf::Vector2f m_pos;
-        sf::RectangleShape m_line = sf::RectangleShape({m_length, 1.0f});
+        sf::RectangleShape m_drawable = sf::RectangleShape({m_length, 1.0f}); 
 
-        Ray(sf::Vector2f pos, sf::Angle angle)
-            : m_pos{pos}, m_angle(angle)
+        Ray(sf::Vector2f pos, sf::Angle angle, sf::Angle relativeAngle)
+            : m_pos{pos}, m_angle(angle), m_relativeAngle(relativeAngle)
         {
-            m_line.setPosition(m_pos);
-            m_line.setRotation(m_angle);
-            m_line.setFillColor(sf::Color::Red);
+            m_drawable.setPosition(m_pos);
+            m_drawable.setRotation(m_angle);
+            m_drawable.setFillColor(sf::Color::Red);
         }
     };
 
-    int rayNum{10};
+    int rayCount{10};
     float FOV{90.0f};
     std::vector<Ray> raysVec;
-    std::vector<sf::RectangleShape> viewRectangles;
+    std::vector<sf::RectangleShape> wallSlices;
 
     CRays() = default;
     CRays(sf::Vector2f pos, sf::Angle angle , int rayNum, float fov)
-        : rayNum{rayNum}, FOV{fov}
+        : rayCount{rayNum}, FOV{fov}
     {
         if (rayNum == 1) 
         {
-            raysVec.push_back(Ray(pos, angle));
-            viewRectangles.push_back(sf::RectangleShape({512.0f, 512.0f}));
+            raysVec.push_back(Ray(pos, angle, sf::degrees(0.0f)));
+            wallSlices.push_back(sf::RectangleShape({512.0f, 512.0f}));
         }
         else 
         {
-            float anglesBtw = FOV * 2 / (rayNum - 1);
-            float viewRectWidth = 512.0f / rayNum;
+            float angleBtw = FOV * 2 / (rayNum - 1);
+            float sliceWidth = 640.0f / rayNum;
             for (int i{0}; i < rayNum; i++)
             {
-                raysVec.push_back(Ray(pos, sf::degrees(anglesBtw * i - FOV)));
-                viewRectangles.push_back(sf::RectangleShape({viewRectWidth, 512.0f}));
-                viewRectangles.back().setPosition({512.0f + i * viewRectWidth, 0.0f});
+                raysVec.push_back(Ray(pos, sf::degrees(angleBtw * i - FOV), sf::degrees(angleBtw * i - FOV)));
+                wallSlices.push_back(sf::RectangleShape({sliceWidth, 512.0f}));
+                wallSlices.back().setPosition({0.0f + i * sliceWidth, 0.0f});
             }
         }
     }
