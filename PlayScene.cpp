@@ -72,6 +72,8 @@ PlayScene::PlayScene(sf::RenderWindow & window)
             file.close();
         }
         else std::cout << "file can't be opened" << '\n';
+
+        m_entityManager.printMapSize();
     }
 
 void PlayScene::update()
@@ -150,25 +152,25 @@ void PlayScene::sCollisions()
 
     float overlapX = 0.0f, overlapY = 0.0f;
     // is there a box above me?
-    if (m_entityManager.isTile(posY - 1, posX))
+    if (m_entityManager.isTileOrOOB(posY - 1, posX))
     {
          overlapY = tileVec[posY - 1][posX]->getC<CTransform>().pos.y + 64.0f - (playerPos.y - 10.0f); // magic 64.0f number
          if (overlapY > 0) playerPos.y += overlapY;
     }
     // or below me?
-    if (m_entityManager.isTile(posY + 1, posX)) 
+    if (m_entityManager.isTileOrOOB(posY + 1, posX)) 
     {
          overlapY = tileVec[posY + 1][posX]->getC<CTransform>().pos.y         - (playerPos.y + 10.0f);
          if (overlapY < 0) playerPos.y += overlapY;
     }
     // of left of me
-    if (m_entityManager.isTile(posY, posX - 1))
+    if (m_entityManager.isTileOrOOB(posY, posX - 1))
     {
          overlapX = tileVec[posY][posX - 1]->getC<CTransform>().pos.x + 64.0f - (playerPos.x - 10.0f);
          if (overlapX > 0) playerPos.x += overlapX;
     }
     // or right of me
-    if (m_entityManager.isTile(posY, posX + 1))
+    if (m_entityManager.isTileOrOOB(posY, posX + 1))
     {
          overlapX = tileVec[posY][posX + 1]->getC<CTransform>().pos.x         - (playerPos.x + 10.0f);
          if (overlapX < 0) playerPos.x += overlapX;
@@ -219,12 +221,7 @@ void PlayScene::sRays()
             {
                 gridX = (int)finalX / 64;
                 gridY = (int)finalY / 64;
-                if (gridX < 0 || gridY < 0 || gridX > 7 || gridY > 7) 
-                {
-                    horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
-                    break;
-                }
-                if (tileMap[gridY][gridX]->getTag() == "tile")
+                if (m_entityManager.isTileOrOOB(gridY, gridX)) // why cant i do this?
                 {
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
@@ -250,12 +247,7 @@ void PlayScene::sRays()
             {
                 gridX = (int)finalX / 64;
                 gridY = (int)finalY / 64;
-                if (gridX < 0 || gridY < 1 || gridX > 7 || gridY > 7) 
-                {
-                    horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
-                    break;
-                }
-                if (tileMap[gridY - 1][gridX]->getTag() == "tile")
+                if (m_entityManager.isTileOrOOB(gridY - 1, gridX))
                 {
                     horizontalLength = (finalY - r.m_pos.y) / std::sin(rayAngleRad);
                     break;
@@ -290,12 +282,7 @@ void PlayScene::sRays()
             {
                 gridY = (int)finalY / 64;
                 gridX = (int)finalX / 64;
-                if (gridX < 0 || gridY < 0 || gridX > 7 || gridY > 7) 
-                {
-                    verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
-                    break;
-                }
-                if (tileMap[gridY][gridX]->getTag() == "tile")
+                if (m_entityManager.isTileOrOOB(gridY, gridX))
                 {
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
@@ -321,12 +308,7 @@ void PlayScene::sRays()
             {
                 gridX = (int)finalX / 64;
                 gridY = (int)finalY / 64;
-                if (gridX < 1 || gridY < 0 || gridX > 7 || gridY > 7) 
-                {
-                    verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
-                    break;
-                }
-                if (tileMap[gridY][gridX - 1]->getTag() == "tile")
+                if (m_entityManager.isTileOrOOB(gridY, gridX - 1))
                 {
                     verticalLength = (finalX - r.m_pos.x) / std::cos(rayAngleRad);
                     break;
@@ -370,19 +352,19 @@ void PlayScene::render()
     m_window.clear();
     m_entityManager.updateInfo();
 
-    for (std::vector<std::shared_ptr<Entity>> & tileVec : m_entityManager.getTiles())
-    {
-        for (std::shared_ptr<Entity> & t : tileVec)
-        {
-            if (t->getTag() == "tile") m_window.draw(t->getC<CShape>().shape);
-        }
-    }
-    m_window.draw(m_player.getC<CShape>().shape);
+    // for (std::vector<std::shared_ptr<Entity>> & tileVec : m_entityManager.getTiles())
+    // {
+    //     for (std::shared_ptr<Entity> & t : tileVec)
+    //     {
+    //         if (t->getTag() == "tile") m_window.draw(t->getC<CShape>().shape);
+    //     }
+    // }
+    // m_window.draw(m_player.getC<CShape>().shape);
 
-    for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
-    {
-        m_window.draw(r.m_line);
-    }
+    // for (CRays::Ray & r : m_player.getC<CRays>().raysVec)
+    // {
+    //     m_window.draw(r.m_line);
+    // }
     for (sf::RectangleShape & r : m_player.getC<CRays>().viewRectangles)
     {
         m_window.draw(r);

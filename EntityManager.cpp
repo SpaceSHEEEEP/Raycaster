@@ -4,6 +4,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 void EntityManager::addPlayer(int a, int b)
 {
@@ -51,9 +52,10 @@ std::vector<std::vector<std::shared_ptr<Entity>>> & EntityManager::getTiles()
     return m_tiles;
 }
 
-bool EntityManager::isTile(int b, int a)
+bool EntityManager::isTileOrOOB(int b, int a)
 {
-    if (a < 0 || b < 0 || a >= 8 || b >= 8) return false;
+    // if (a < 0 || b < 0 || a > 7 || b > 7) 
+    if (a < 0 || b < 0 || a > MAP_WIDTH || b > MAP_HEIGHT) return true;
     return m_tiles[b][a]->getTag() == "tile";
 }
 
@@ -70,4 +72,11 @@ void EntityManager::updateInfo()
         r.m_line.setSize({r.m_length, 1.0f});
         r.m_line.setRotation(r.m_angle);
     }
+}
+
+void EntityManager::printMapSize()
+{
+    MAP_HEIGHT = m_tiles.size() - 1;
+    MAP_WIDTH = m_tiles[0].size() - 1;
+    std::cout << "MAP_WIDTH:" << MAP_WIDTH << " MAP_HEIGHT: " << MAP_HEIGHT << '\n';  
 }
