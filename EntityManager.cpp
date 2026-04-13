@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 void EntityManager::addPlayer(int a, int b)
 {
@@ -77,6 +78,9 @@ void EntityManager::updateInfo()
 void EntityManager::printMapSize()
 {
     MAP_HEIGHT = m_tiles.size() - 1;
-    MAP_WIDTH = m_tiles[0].size() - 1;
+    for (int i = 0; i <= MAP_HEIGHT; i++)
+    {
+        MAP_WIDTH = std::max(MAP_WIDTH, (int)m_tiles[i].size() - 1);
+    }
     std::cout << "MAP_WIDTH:" << MAP_WIDTH << " MAP_HEIGHT: " << MAP_HEIGHT << '\n';  
 }

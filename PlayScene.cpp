@@ -352,7 +352,6 @@ void PlayScene::sRays()
         crays.wallSlices[i].setSize({crays.wallSlices[i].getSize().x , sliceHeight});
         crays.wallSlices[i].setPosition({crays.wallSlices[i].getPosition().x, sliceY});
 
-        // also there's a black line in the centre if look at wall perpendicularly
         crays.wallSlices[i].setFillColor(crays.raysVec[i].m_drawable.getFillColor());
     }
 }

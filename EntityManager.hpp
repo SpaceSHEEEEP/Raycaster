@@ -11,8 +11,8 @@ class EntityManager
     const float PLAYER_RAD = 20.0f;
     // const float PLAYER_SPEED = 5.0f;
     // const float PLAYER_TURN_SPEED = 9.1f;
-    int MAP_WIDTH = 7;
-    int MAP_HEIGHT = 7;
+    int MAP_WIDTH = 0;
+    int MAP_HEIGHT = 0;
 
     std::vector<std::vector<std::shared_ptr<Entity>>> m_tiles;
     Entity m_player = Entity("player");
