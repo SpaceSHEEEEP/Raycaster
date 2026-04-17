@@ -9,6 +9,16 @@ int main()
     window.setPosition({100, 150});
     SceneManager sceneManager(window);
      
+    // I need this for mac version to work
+    while (const std::optional event = window.pollEvent())
+    {
+        // Check if the window was closed
+        if (event->is<sf::Event::Closed>())
+        {
+            window.close();
+        }
+    }
+
     while(window.isOpen())
     {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Escape)) window.close();
