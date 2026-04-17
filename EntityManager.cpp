@@ -12,7 +12,7 @@ void EntityManager::addPlayer(int a, int b)
         m_player.addC<CTransform>(sf::Vector2f(a * TILE_RAD, b * TILE_RAD), sf::Vector2f(.0f, .0f), 0.0f);
         m_player.addC<CShape>(4, PLAYER_RAD);
         m_player.addC<CInput>();
-        m_player.addC<CRays>(sf::Vector2f(a * TILE_RAD, b * TILE_RAD), sf::degrees(0.0f), 141, 45);
+        m_player.addC<CRays>(sf::Vector2f(a * TILE_RAD, b * TILE_RAD), sf::degrees(0.0f), 141, 20);
 }
 
 void EntityManager::addTile(int a, int b)

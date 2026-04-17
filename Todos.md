@@ -1,0 +1,4 @@
+- [ ] Add textures to walls
+- [ ] Make config.txt more useful
+- [ ] Make player speed and rotation slower
+- [ ] Maybe add back the top down map. bring it up when press 'm' on keyboard
