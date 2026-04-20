@@ -2,3 +2,4 @@
 - [ ] Make config.txt more useful
 - [ ] Make player speed and rotation slower
 - [ ] Maybe add back the top down map. bring it up when press 'm' on keyboard
+- [ ] After adding textures, change map.txt so that can add diff walls if diff symbols 

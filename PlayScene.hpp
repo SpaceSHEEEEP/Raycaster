@@ -14,6 +14,7 @@ public:
     void sUserInput();
     void sMovement();
     void sCollisions();
+    void renderMap();
     void render();
     void sRays();
 };

@@ -356,11 +356,8 @@ void PlayScene::sRays()
     }
 }
 
-void PlayScene::render() 
+void PlayScene::renderMap()
 {
-    m_window.clear();
-    m_entityManager.updateInfo();
-
     // for (std::vector<std::shared_ptr<Entity>> & tileVec : m_entityManager.getTiles())
     // {
     //     for (std::shared_ptr<Entity> & t : tileVec)
@@ -374,10 +371,21 @@ void PlayScene::render()
     // {
     //     m_window.draw(r.m_drawable);
     // }
+  
+}
+
+void PlayScene::render() 
+{
+    m_window.clear();
+    m_entityManager.updateInfo();
+
+
     for (sf::RectangleShape & r : m_player.getC<CRays>().wallSlices)
     {
         m_window.draw(r);
     }
+
+    renderMap();
 
     m_window.display();
 }
