@@ -356,6 +356,13 @@ void PlayScene::sRays()
     }
 }
 
+void PlayScene::sUpdateMap()
+{
+    // add CMini components to tiles and player entities so that can render sf::shapes using that
+    // if i press "m" on keyboard, then run this on every delta time thing. otherwise dont need 
+
+}
+
 void PlayScene::renderMap()
 {
     // for (std::vector<std::shared_ptr<Entity>> & tileVec : m_entityManager.getTiles())

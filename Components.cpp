@@ -56,6 +56,11 @@ public:
     }
 };
 
+class CMini : public CShape
+{
+    
+};
+
 class CRays : public Component
 {
 public:
